@@ -15,7 +15,7 @@ class Form1(Form1Template):
     else:
       self.label_interativo.text = "Botão de teste clicado!"
       self.label_interativo.foreground = "green"
-
+  
   # 2. Experimento Síncrono (Bloqueia a tela desativando os botões)
   @handle("btn_sincrono", "click")
   def btn_sincrono_click(self, **event_args):
@@ -28,3 +28,16 @@ class Form1(Form1Template):
     self.btn_assincrono.enabled = True
     self.btn_interativo.enabled = True
     self.label_status.text = "Áudio síncrono processado!"
+
+  # 3. Experimento Assíncrono (Mantém a tela 100% livre)
+  @handle("btn_assincrono", "click")
+  def btn_assincrono_click(self, **event_args):
+    self.label_status.text = "Processando Áudio (Assíncrono)..."
+    
+    def concluir_espera():
+      self.label_status.text = "Áudio assíncrono processado!"
+      
+    from anvil import Timer
+    t = Timer(interval=5, repeats=False)
+    t.set_event_handler('tick', lambda **kv: concluir_espera())
+    self.add_component(t)
