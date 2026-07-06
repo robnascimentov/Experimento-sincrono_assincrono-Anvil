@@ -5,8 +5,11 @@ import time
 class Form1(Form1Template):
   def __init__(self, **properties):
     self.init_components(**properties)
+    import anvil.js
+    anvil.js.window.document.title = "Experimento Concorrência - Anvil"
 
-  # 1. Testar Interatividade
+  # 1. Testar Interatividade (Muda o texto instantaneamente)
+    # 1. Testar Interatividade
   @handle("btn_interativo", "click")
   def btn_interativo_click(self, **event_args):
     if self.label_interativo.text == "Botão de teste clicado!":
@@ -15,15 +18,21 @@ class Form1(Form1Template):
     else:
       self.label_interativo.text = "Botão de teste clicado!"
       self.label_interativo.foreground = "green"
-  
-  # 2. Experimento Síncrono (Bloqueia a tela desativando os botões)
+
+    # 2. Experimento Síncrono (Bloqueia a tela desativando os botões)
   @handle("btn_sincrono", "click")
   def btn_sincrono_click(self, **event_args):
     self.label_status.text = "Processando Áudio (Síncrono)..."
+
+    # Desativa os botões para simular visualmente o congelamento total
     self.btn_sincrono.enabled = False
     self.btn_assincrono.enabled = False
     self.btn_interativo.enabled = False
+
+    # Executa a pausa de 5 segundos
     time.sleep(5)
+
+    # Reativa os componentes após os 5 segundos passarem
     self.btn_sincrono.enabled = True
     self.btn_assincrono.enabled = True
     self.btn_interativo.enabled = True
@@ -33,11 +42,14 @@ class Form1(Form1Template):
   @handle("btn_assincrono", "click")
   def btn_assincrono_click(self, **event_args):
     self.label_status.text = "Processando Áudio (Assíncrono)..."
-    
+
+    # No assíncrono, NÃO desativamos nada. A interface fica livre para cliques.
     def concluir_espera():
       self.label_status.text = "Áudio assíncrono processado!"
-      
-    from anvil import Timer
-    t = Timer(interval=5, repeats=False)
-    t.set_event_handler('tick', lambda **kv: concluir_espera())
+
+    # Dispara o cronômetro em segundo plano
+      from anvil import Timer
+    t = Timer(interval=5)
+    t.set_event_handler('tick', lambda **kv: (concluir_espera(), t.remove_from_parent()))
     self.add_component(t)
+
